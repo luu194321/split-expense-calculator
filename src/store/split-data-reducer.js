@@ -138,9 +138,6 @@ export const splitReducer = (state, action) => {
     const updatedSplits = state.splits.concat(newSplit);
 
     if (action.splitType === EQUALLY) {
-      if (state.totalAmount === null)
-        return { ...state, splits: updatedSplits };
-
       if (state.totalAmount != null) {
         const newSplits = newSplitsforEqually(state.totalAmount, updatedSplits);
 
@@ -152,11 +149,11 @@ export const splitReducer = (state, action) => {
           splitsTotalAmount: getSum(splitValues),
         };
       }
-      return {
-        ...state,
-        splits: updatedSplits,
-      };
     }
+    return {
+      ...state,
+      splits: updatedSplits,
+    };
   }
   /*-----------------------------------------------------*/
   ////////// REMOVE ------------- ///////////////////
