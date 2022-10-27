@@ -1,6 +1,7 @@
 import React, { useReducer, useContext } from "react";
 import { EQUALLY, EXACT_AMOUNTS, PERCENTAGES, SHARES } from "../constants";
 import { splitReducer, createNewSplit } from "./split-data-reducer";
+import fractionStrToDecimal from "../utils/fractionStrToDecimal";
 
 const initialSplits = [createNewSplit()];
 
@@ -38,8 +39,8 @@ export const SplitDataProvider = (props) => {
     dispatchSplitAction({ type: "REMOVE", id, splitType });
   };
 
-  const handleSplitFieldInputChange = (amount, splitId) => {
-    dispatchSplitAction({ type: "EXACT_INPUT", amount, splitId });
+  const handleSplitFieldInputChange = (input, splitId) => {
+    dispatchSplitAction({ type: "EXACT_INPUT", input, splitId });
   };
 
   const handleNameChange = (name, splitId) => {

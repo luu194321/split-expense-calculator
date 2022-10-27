@@ -5,15 +5,22 @@ import { useSplitDataContext } from "../../store/split-data-context";
 
 import "./styles.scss";
 import getSum from "../../utils/getSum";
+import { PERCENTAGES } from "../../constants";
 
 export const Splits = (props) => {
   // Placeholder variable for testing
 
   const splitState = useSplitDataContext();
 
-  const splitValues = splitState.splits?.map((split) => split.value);
+  const splitValuesGenerator = () => {
+    if (splitState.splitType === PERCENTAGES) {
+      return splitState.splits?.map((split) => split.calculatedValue);
+    }
+    return splitState.splits?.map((split) => split.value);
+  };
 
-  const totalAmountLeftToSplit = getSum(splitValues) - splitState.totalAmount;
+  const totalAmountLeftToSplit =
+    getSum(splitValuesGenerator()) - splitState.totalAmount;
 
   let totalLeftModifier = "";
 
@@ -61,6 +68,7 @@ export const Splits = (props) => {
               onRemove={handleRemoveFor(split.id)}
               onSplitFieldChange={handleSplitFieldChange}
               value={split.value}
+              calculatedValue={split.calculatedValue}
               id={split.id}
               name={split.name}
             />

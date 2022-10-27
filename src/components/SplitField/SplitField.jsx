@@ -1,10 +1,11 @@
-import { forwardRef, useContext } from "react";
+import { forwardRef } from "react";
 import { Button, Card, FormControl, InputGroup } from "react-bootstrap";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { faPlusMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { EQUALLY, EXACT_AMOUNTS, PERCENTAGES, SHARES } from "../../constants";
 import { useSplitDataContext } from "../../store/split-data-context";
+import fractionStrToDecimal from "../../utils/fractionStrToDecimal";
 
 import "./styles.scss";
 
@@ -20,11 +21,16 @@ export const SplitField = forwardRef((props, ref) => {
 
   const handleChange = (e) => {
     // props.id === id of individual splits
+    console.log(e.target.value);
     splitState.handleSplitFieldInputChange(e.target.value, props.id);
   };
 
   const handleNameChange = (e) => {
     splitState.handleNameChange(e.target.value, props.id);
+  };
+
+  const handleBlur = (e) => {
+    console.log(e.target.value, fractionStrToDecimal(e.target.value));
   };
 
   return (
@@ -48,6 +54,7 @@ export const SplitField = forwardRef((props, ref) => {
             onChange={handleChange}
             value={props.value}
             key={props.key}
+            onBlur={handleBlur}
           />
 
           {splitState.splitType === PERCENTAGES && (
@@ -75,6 +82,7 @@ export const SplitField = forwardRef((props, ref) => {
         {splitState.splitType === EQUALLY &&
           (splitState.totalAmount === null ? "0" : props.value)}
         {splitState.splitType === EXACT_AMOUNTS && props.value}
+        {splitState.splitType === PERCENTAGES && props.calculatedValue}
       </Card>
 
       <Button
