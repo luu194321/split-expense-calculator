@@ -22,9 +22,7 @@ export const SplitDataProvider = (props) => {
   );
 
   const handleTotalEntered = (amount, splitType) => {
-    const total = Number(amount).toFixed(2);
-
-    dispatchSplitAction({ type: "AMOUNT_ENTERED", amount: total, splitType });
+    dispatchSplitAction({ type: "AMOUNT_ENTERED", amount, splitType });
   };
 
   const handleSplitTypeSelect = (splitType) => {
@@ -40,7 +38,8 @@ export const SplitDataProvider = (props) => {
   };
 
   const handleSplitFieldInputChange = (input, splitId) => {
-    dispatchSplitAction({ type: "EXACT_INPUT", input, splitId });
+    
+    dispatchSplitAction({ type: "INPUT_CHANGE", input, splitId });
   };
 
   const handleNameChange = (name, splitId) => {

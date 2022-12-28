@@ -69,6 +69,14 @@ export const splitReducer = (state, action) => {
   ////////// AMOUNT ENTERED //////////////
   /*-----------------------------------------------------*/
   if (action.type === "AMOUNT_ENTERED") {
+
+    const isInvalidNumber = isNaN(Number(action.amount)) && action.amount !== '.' 
+    const hasMoreThanTwoDecimals = action.amount.includes('.') && action.amount.split('.')[1].length > 2
+
+    if (isInvalidNumber || hasMoreThanTwoDecimals) return state;
+
+    
+
     ////-----  EQUALLY ------////
 
     if (action.splitType === EQUALLY) {
@@ -119,9 +127,19 @@ export const splitReducer = (state, action) => {
     };
   }
   /*-----------------------------------------------------*/
-  ////////// EXACT INPUT ///////////////////
+  ////////// INPUT CHANGE ///////////////////
   /*-----------------------------------------------------*/
-  if (action.type === "EXACT_INPUT") {
+  if (action.type === "INPUT_CHANGE") {
+    if (isNaN(Number(action.input)) && action.input !== '.') return state;
+
+    if (state.splitType === EXACT_AMOUNTS){
+      if (action.input.includes('.') && action.input.split('.')[1].length > 2){
+        return state
+      }
+    }
+
+
+
     const newSplits = state.splits.map((split, i) => {
       return {
         ...split,

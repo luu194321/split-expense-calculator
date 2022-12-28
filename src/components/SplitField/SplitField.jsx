@@ -21,8 +21,9 @@ export const SplitField = forwardRef((props, ref) => {
 
   const handleChange = (e) => {
     // props.id === id of individual splits
-    console.log(e.target.value);
+    
     splitState.handleSplitFieldInputChange(e.target.value, props.id);
+
   };
 
   const handleNameChange = (e) => {

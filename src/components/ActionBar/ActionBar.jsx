@@ -1,12 +1,10 @@
 import { Button, Card, FormControl, InputGroup } from "react-bootstrap";
 import { SplitTypeField } from "../SplitTypeField";
-import { useState } from "react";
 import { useSplitDataContext } from "../../store/split-data-context";
 
 import "./styles.scss";
 
 export const ActionBar = (props) => {
-  const [enteredInput, setEnteredInput] = useState("");
 
   const splitState = useSplitDataContext();
 
@@ -15,7 +13,6 @@ export const ActionBar = (props) => {
   };
 
   const handleChange = (e) => {
-    setEnteredInput(e.target.value);
     splitState.handleTotalEntered(e.target.value, splitState.splitType);
   };
 
@@ -25,7 +22,7 @@ export const ActionBar = (props) => {
         <label className="total-expense__label">Total expense</label>
         <InputGroup className="total-expense__input">
           <InputGroup.Text>$</InputGroup.Text>
-          <FormControl value={enteredInput} onChange={handleChange} />
+          <FormControl value={splitState.totalAmount} onChange={handleChange} />
         </InputGroup>
       </div>
 
