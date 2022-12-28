@@ -21,9 +21,7 @@ export const SplitField = forwardRef((props, ref) => {
 
   const handleChange = (e) => {
     // props.id === id of individual splits
-    
     splitState.handleSplitFieldInputChange(e.target.value, props.id);
-
   };
 
   const handleNameChange = (e) => {
@@ -32,6 +30,11 @@ export const SplitField = forwardRef((props, ref) => {
 
   const handleBlur = (e) => {
     console.log(e.target.value, fractionStrToDecimal(e.target.value));
+  };
+
+  const handleAdjustmentFieldInputChange = (e) => {
+    console.log(e.target.value)
+    splitState.handleAdjustmentFieldInputChange(e.target.value, props.id);
   };
 
   return (
@@ -74,7 +77,11 @@ export const SplitField = forwardRef((props, ref) => {
             <FontAwesomeIcon icon={faPlusMinus} size="2xs" />$
           </InputGroup.Text>
 
-          <FormControl placeholder="Adjustment" />
+          <FormControl
+            placeholder="Adjustment"
+            onChange={handleAdjustmentFieldInputChange}
+            value={props.adjustmentValue}
+          />
         </InputGroup>
       )}
 

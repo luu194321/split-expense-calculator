@@ -38,13 +38,16 @@ export const SplitDataProvider = (props) => {
   };
 
   const handleSplitFieldInputChange = (input, splitId) => {
-    
     dispatchSplitAction({ type: "INPUT_CHANGE", input, splitId });
   };
 
   const handleNameChange = (name, splitId) => {
     dispatchSplitAction({ type: "NAME_CHANGE", name, splitId });
   };
+
+  const handleAdjustmentFieldInputChange = (input,splitId)=>{
+    dispatchSplitAction({type:'ADJUSTMENT_INPUT',input,splitId})
+  }
 
   const splitDataContext = {
     splitType: splitState.splitType,
@@ -58,6 +61,7 @@ export const SplitDataProvider = (props) => {
     handleAddSplit,
     handleRemoveSplit,
     handleSplitFieldInputChange,
+    handleAdjustmentFieldInputChange,
     handleNameChange,
   };
   return (

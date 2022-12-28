@@ -11,6 +11,7 @@ export const createNewSplit = () => ({
   nodeRef: createRef(null),
   value: "",
   calculatedValue: "",
+  adjustmentValue: "",
 });
 
 const newSplitsforEqually = (totalAmount, splits) => {
@@ -196,8 +197,15 @@ export const splitReducer = (state, action) => {
         return (acc += +split.value);
       }, 0);
 
+      const adjustmentInputTotal = newSplits.reduce((acc, split, i) => {
+        return (acc += +split.adjustmentValue);
+      }, 0);
+
+      const totalAmountAfterAdjustments =
+      state.totalAmount - adjustmentInputTotal;
+
       const distributedCalculatedValues = currency(
-        state.totalAmount
+        totalAmountAfterAdjustments
       ).distribute(totalShares);
 
       if (action.input.includes(".")) return state;
@@ -207,14 +215,14 @@ export const splitReducer = (state, action) => {
           0,
           split.value
         );
-
+  
         return {
           ...split,
-          calculatedValue: getSum(calculatedValues),
+          calculatedValue: (
+            +getSum(calculatedValues) + +split.adjustmentValue
+          ).toFixed(2),
         };
       });
-
-      console.log(newSharesSplits);
 
       return {
         ...state,
@@ -231,6 +239,61 @@ export const splitReducer = (state, action) => {
       splitsTotalAmount: getSum(splitValues),
     };
   }
+
+  /*-----------------------------------------------------*/
+  ////////// ADJUSTMENT FIELD CHANGE ///////////////////
+  /*-----------------------------------------------------*/
+
+  if (action.type === "ADJUSTMENT_INPUT") {
+    const newSplits = state.splits.map((split) => {
+      return {
+        ...split,
+        adjustmentValue:
+          action.splitId === split.id ? +action.input : split.adjustmentValue,
+      };
+    });
+
+    const adjustmentInputTotal = newSplits.reduce((acc, split, i) => {
+      return (acc += +split.adjustmentValue);
+    }, 0);
+
+    const totalAmountAfterAdjustments =
+      state.totalAmount - adjustmentInputTotal;
+
+    const totalShares = newSplits.reduce((acc, split, i) => {
+      return (acc += +split.value);
+    }, 0);
+
+    const distributedCalculatedValues = currency(
+      totalAmountAfterAdjustments
+    ).distribute(totalShares);
+
+    const newSharesSplits = newSplits.map((split) => {
+      const calculatedValues = distributedCalculatedValues.splice(
+        0,
+        split.value
+      );
+
+      return {
+        ...split,
+        calculatedValue: (
+          +getSum(calculatedValues) + +split.adjustmentValue
+        ).toFixed(2),
+      };
+    });
+
+    return {
+      ...state,
+      splits: newSharesSplits,
+      splitsTotalAmount: getSum(
+        newSharesSplits.map((split) => split.calculatedValue)
+      ),
+    };
+  }
+
+  /*-----------------------------------------------------*/
+  ////////// NAME CHANGE ///////////////////
+  /*-----------------------------------------------------*/
 
   if (action.type === "NAME_CHANGE") {
     const inputName = action.name;

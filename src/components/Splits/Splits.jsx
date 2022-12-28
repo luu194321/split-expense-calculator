@@ -71,6 +71,7 @@ export const Splits = (props) => {
               calculatedValue={split.calculatedValue}
               id={split.id}
               name={split.name}
+              adjustmentValue={split.adjustmentValue}
             />
           </CSSTransition>
         ))}
