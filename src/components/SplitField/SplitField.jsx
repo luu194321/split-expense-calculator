@@ -84,6 +84,7 @@ export const SplitField = forwardRef((props, ref) => {
           (splitState.totalAmount === null ? "0" : props.value)}
         {splitState.splitType === EXACT_AMOUNTS && props.value}
         {splitState.splitType === PERCENTAGES && props.calculatedValue}
+        {splitState.splitType === SHARES && props.calculatedValue}
       </Card>
 
       <Button

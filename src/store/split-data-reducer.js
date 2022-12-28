@@ -69,13 +69,12 @@ export const splitReducer = (state, action) => {
   ////////// AMOUNT ENTERED //////////////
   /*-----------------------------------------------------*/
   if (action.type === "AMOUNT_ENTERED") {
-
-    const isInvalidNumber = isNaN(Number(action.amount)) && action.amount !== '.' 
-    const hasMoreThanTwoDecimals = action.amount.includes('.') && action.amount.split('.')[1].length > 2
+    const isInvalidNumber =
+      isNaN(Number(action.amount)) && action.amount !== ".";
+    const hasMoreThanTwoDecimals =
+      action.amount.includes(".") && action.amount.split(".")[1].length > 2;
 
     if (isInvalidNumber || hasMoreThanTwoDecimals) return state;
-
-    
 
     ////-----  EQUALLY ------////
 
@@ -121,6 +120,20 @@ export const splitReducer = (state, action) => {
       };
     }
 
+    ////-----  SHARES ------////
+
+    if (action.splitType === SHARES) {
+      const sharesSplitValues = state.splits.map(
+        (split) => split.calculatedValue
+      );
+
+      return {
+        ...state,
+        totalAmount: action.amount,
+        splitsTotalAmount: getSum(sharesSplitValues),
+      };
+    }
+
     return {
       ...state,
       totalAmount: action.amount,
@@ -130,15 +143,13 @@ export const splitReducer = (state, action) => {
   ////////// INPUT CHANGE ///////////////////
   /*-----------------------------------------------------*/
   if (action.type === "INPUT_CHANGE") {
-    if (isNaN(Number(action.input)) && action.input !== '.') return state;
+    if (isNaN(Number(action.input)) && action.input !== ".") return state;
 
-    if (state.splitType === EXACT_AMOUNTS){
-      if (action.input.includes('.') && action.input.split('.')[1].length > 2){
-        return state
+    if (state.splitType === EXACT_AMOUNTS) {
+      if (action.input.includes(".") && action.input.split(".")[1].length > 2) {
+        return state;
       }
     }
-
-
 
     const newSplits = state.splits.map((split, i) => {
       return {
@@ -152,8 +163,11 @@ export const splitReducer = (state, action) => {
     ////-----  PERCENTAGES ------////
 
     if (state.splitType === PERCENTAGES) {
+      if (action.input === ".") {
+        return { ...state, splits: newSplits };
+      }
+
       const newPercentagesSplits = state.splits.map((split, i) => {
-        console.log(Number(action.input) * state.totalAmount);
         return {
           ...split,
           value: action.splitId === split.id ? action.input : split.value,
@@ -172,6 +186,42 @@ export const splitReducer = (state, action) => {
         ...state,
         splits: newPercentagesSplits,
         splitsTotalAmount: getSum(percentagesSplitValues),
+      };
+    }
+
+    ////-----  SHARES ------////
+
+    if (state.splitType === SHARES) {
+      const totalShares = newSplits.reduce((acc, split, i) => {
+        return (acc += +split.value);
+      }, 0);
+
+      const distributedCalculatedValues = currency(
+        state.totalAmount
+      ).distribute(totalShares);
+
+      if (action.input.includes(".")) return state;
+
+      const newSharesSplits = newSplits.map((split) => {
+        const calculatedValues = distributedCalculatedValues.splice(
+          0,
+          split.value
+        );
+
+        return {
+          ...split,
+          calculatedValue: getSum(calculatedValues),
+        };
+      });
+
+      console.log(newSharesSplits);
+
+      return {
+        ...state,
+        splits: newSharesSplits,
+        splitsTotalAmount: getSum(
+          newSharesSplits.map((split) => split.calculatedValue)
+        ),
       };
     }
 
