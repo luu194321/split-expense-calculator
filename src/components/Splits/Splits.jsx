@@ -39,9 +39,7 @@ export const Splits = (props) => {
     splitState.handleRemoveSplit(id, splitType);
   };
 
-  const handleSplitFieldChange = (splitFieldInput) => {
-    console.log(splitFieldInput);
-  };
+
 
   if (!splitState.splits?.length) {
     return (
@@ -68,7 +66,6 @@ export const Splits = (props) => {
               position={index + 1}
               splitType={splitState.splitType}
               onRemove={handleRemoveFor(split.id)}
-              onSplitFieldChange={handleSplitFieldChange}
               value={split.value}
               calculatedValue={split.calculatedValue}
               id={split.id}
