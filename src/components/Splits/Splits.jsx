@@ -5,10 +5,9 @@ import { useSplitDataContext } from "../../store/split-data-context";
 
 import "./styles.scss";
 import getSum from "../../utils/getSum";
-import { PERCENTAGES } from "../../constants";
+import { PERCENTAGES, SHARES } from "../../constants";
 
 export const Splits = (props) => {
-  // Placeholder variable for testing
 
   const splitState = useSplitDataContext();
 
@@ -16,11 +15,14 @@ export const Splits = (props) => {
     if (splitState.splitType === PERCENTAGES) {
       return splitState.splits?.map((split) => split.calculatedValue);
     }
+    if(splitState.splitType === SHARES){
+      return splitState.splits?.map((split)=>split.calculatedValue)
+    }
     return splitState.splits?.map((split) => split.value);
   };
 
   const totalAmountLeftToSplit =
-    getSum(splitValuesGenerator()) - splitState.totalAmount;
+    (splitState.totalAmount - getSum(splitValuesGenerator())).toFixed(2);
 
   let totalLeftModifier = "";
 

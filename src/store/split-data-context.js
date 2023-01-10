@@ -8,7 +8,7 @@ const initialSplits = [createNewSplit()];
 const defaultSplitDataState = {
   splitType: EQUALLY,
   splits: initialSplits,
-  totalAmount: null,
+  totalAmount: '',
   totalAmountRemaining: "",
   splitsPerPerson: "",
   splitsTotalAmount: "0",
@@ -46,7 +46,7 @@ export const SplitDataProvider = (props) => {
   };
 
   const handleAdjustmentFieldInputChange = (input,splitId)=>{
-    dispatchSplitAction({type:'ADJUSTMENT_INPUT',input,splitId})
+    dispatchSplitAction({type:'ADJUSTMENT_INPUT', input, splitId})
   }
 
   const splitDataContext = {
