@@ -3,7 +3,7 @@ import generateUuid from "../utils/generateUuid";
 import { EQUALLY, EXACT_AMOUNTS, PERCENTAGES, SHARES } from "../constants";
 import currency from "currency.js";
 import getSum from "../utils/getSum";
-import fractionStrToDecimal from "../utils/fractionStrToDecimal";
+
 
 export const createNewSplit = () => ({
   id: generateUuid(),
@@ -26,8 +26,43 @@ const newSplitsforEqually = (totalAmount, splits) => {
   return newSplits;
 };
 
+const newSplitsForShares = (updatedSplits, totalAmount) => {
+  const totalShares = updatedSplits.reduce((acc, split, i) => {
+    return (acc += +split.value);
+  }, 0);
+
+  const adjustmentInputTotal = updatedSplits.reduce((acc, split, i) => {
+    return (acc += +split.adjustmentValue);
+  }, 0);
+
+  const totalAmountAfterAdjustments = totalAmount - adjustmentInputTotal;
+
+  const distributedCalculatedValues = currency(
+    totalAmountAfterAdjustments
+  ).distribute(totalShares);
+
+  const splits = updatedSplits.map((split) => {
+    const calculatedValues = distributedCalculatedValues.splice(0, split.value);
+
+    return {
+      ...split,
+      calculatedValue: (
+        +getSum(calculatedValues) + +split.adjustmentValue
+      ).toFixed(2),
+    };
+  });
+
+  const splitsTotalAmount = getSum(
+    splits.map((split) => split.calculatedValue)
+  );
+
+  return { splits, splitsTotalAmount };
+};
+
 export const splitReducer = (state, action) => {
+
   const newSplit = createNewSplit();
+
   /*-----------------------------------------------------*/
   ////////// SELECT TYPE ///////////////////
   /*-----------------------------------------------------*/
@@ -103,7 +138,7 @@ export const splitReducer = (state, action) => {
         console.log(split.value[i]);
         return {
           ...split,
-          calculatedValue: (split.value * action.amount) / 100,
+          calculatedValue: ((split.value * action.amount) / 100).toFixed(2),
         };
       });
 
@@ -122,42 +157,13 @@ export const splitReducer = (state, action) => {
     ////-----  SHARES ------////
 
     if (action.splitType === SHARES) {
-      const totalShares = state.splits.reduce((acc, split, i) => {
-        return (acc += +split.value);
-      }, 0);
-
-      const adjustmentInputTotal = state.splits.reduce((acc, split, i) => {
-        return (acc += +split.adjustmentValue);
-      }, 0);
-
-      const totalAmountAfterAdjustments =
-        action.amount - Number(adjustmentInputTotal);
-
-      const distributedCalculatedValues = currency(
-        totalAmountAfterAdjustments
-      ).distribute(totalShares);
-
-      const newSharesSplits = state.splits.map((split) => {
-        const calculatedValues = distributedCalculatedValues.splice(
-          0,
-          split.value
-        );
-
-        return {
-          ...split,
-          calculatedValue: (
-            +getSum(calculatedValues) + +split.adjustmentValue
-          ).toFixed(2),
-        };
-      });
+      const updatedSharesData = newSplitsForShares(state.splits, action.amount);
 
       return {
         ...state,
         totalAmount: action.amount,
-        splits: newSharesSplits,
-        splitsTotalAmount: getSum(
-          newSharesSplits.map((split) => split.calculatedValue)
-        ),
+        splits: updatedSharesData.splits,
+        splitsTotalAmount: updatedSharesData.splitsTotalAmount,
       };
     }
 
@@ -200,7 +206,7 @@ export const splitReducer = (state, action) => {
           value: action.splitId === split.id ? action.input : split.value,
           calculatedValue:
             action.splitId === split.id
-              ? (Number(action.input) * state.totalAmount) / 100
+              ? ((Number(action.input) * state.totalAmount) / 100).toFixed(2)
               : split.calculatedValue,
         };
       });
@@ -219,45 +225,21 @@ export const splitReducer = (state, action) => {
     ////-----  SHARES ------////
 
     if (state.splitType === SHARES) {
-      const totalShares = newSplits.reduce((acc, split, i) => {
-        return (acc += +split.value);
-      }, 0);
+      if (action.input === ".") {
+        console.log('error')
 
-      const adjustmentInputTotal = newSplits.reduce((acc, split, i) => {
-        return (acc += +split.adjustmentValue);
-      }, 0);
-
-      const totalAmountAfterAdjustments =
-        state.totalAmount - adjustmentInputTotal;
-
-      const distributedCalculatedValues = currency(
-        totalAmountAfterAdjustments
-      ).distribute(totalShares);
-
-      if (action.input.includes(".")) return state;
-
-      const newSharesSplits = newSplits.map((split) => {
-        const calculatedValues = distributedCalculatedValues.splice(
-          0,
-          split.value
-        );
-
-        console.log(calculatedValues);
-
-        return {
-          ...split,
-          calculatedValue: (
-            +getSum(calculatedValues) + +split.adjustmentValue
-          ).toFixed(2),
-        };
-      });
+        return {...state,splits:newSplits}
+      }
+      
+      const updatedSharesData = newSplitsForShares(
+        newSplits,
+        state.totalAmount
+      );
 
       return {
         ...state,
-        splits: newSharesSplits,
-        splitsTotalAmount: getSum(
-          newSharesSplits.map((split) => split.calculatedValue)
-        ),
+        splits: updatedSharesData.splits,
+        splitsTotalAmount: updatedSharesData.splitsTotalAmount,
       };
     }
 
@@ -269,19 +251,21 @@ export const splitReducer = (state, action) => {
   }
 
   /*-----------------------------------------------------*/
-  ////////// ADJUSTMENT FIELD CHANGE ///////////////////
+  ////////// ADJUSTMENT FIELD INPUT CHANGE ///////////////////
   /*-----------------------------------------------------*/
 
   if (action.type === "ADJUSTMENT_INPUT") {
-    
-    const isInvalidNumber =
-      isNaN(Number(action.input)) && action.input !== ".";
+    const isInvalidNumber = isNaN(Number(action.input)) && action.input !== ".";
     const hasMoreThanTwoDecimals =
       action.input.includes(".") && action.input.split(".")[1].length > 2;
-      console.log('isinvalid:',isInvalidNumber, 'hasmmoredec',hasMoreThanTwoDecimals)
+    console.log(
+      "isinvalid:",
+      isInvalidNumber,
+      "hasmmoredec",
+      hasMoreThanTwoDecimals
+    );
 
     if (isInvalidNumber || hasMoreThanTwoDecimals) return state;
-    
 
     const newSplits = state.splits.map((split) => {
       return {
@@ -294,41 +278,13 @@ export const splitReducer = (state, action) => {
     if (action.input === ".") {
       return { ...state, splits: newSplits };
     }
-    const adjustmentInputTotal = newSplits.reduce((acc, split, i) => {
-      return (acc += +split.adjustmentValue);
-    }, 0);
 
-    const totalAmountAfterAdjustments =
-      state.totalAmount - adjustmentInputTotal;
-
-    const totalShares = newSplits.reduce((acc, split, i) => {
-      return (acc += +split.value);
-    }, 0);
-
-    const distributedCalculatedValues = currency(
-      totalAmountAfterAdjustments
-    ).distribute(totalShares);
-
-    const newSharesSplits = newSplits.map((split) => {
-      const calculatedValues = distributedCalculatedValues.splice(
-        0,
-        split.value
-      );
-
-      return {
-        ...split,
-        calculatedValue: (
-          +getSum(calculatedValues) + +split.adjustmentValue
-        ).toFixed(2),
-      };
-    });
+    const updatedSharesData = newSplitsForShares(newSplits, state.totalAmount);
 
     return {
       ...state,
-      splits: newSharesSplits,
-      splitsTotalAmount: getSum(
-        newSharesSplits.map((split) => split.calculatedValue)
-      ),
+      splits: updatedSharesData.splits,
+      splitsTotalAmount: updatedSharesData.splitsTotalAmount,
     };
   }
 
@@ -337,17 +293,17 @@ export const splitReducer = (state, action) => {
   /*-----------------------------------------------------*/
 
   if (action.type === "NAME_CHANGE") {
-    const inputName = action.name;
-    const newSplitsWithNames = state.splits.map((split, i) => {
+
+    const splitsWithUpdatedNames = state.splits.map((split, i) => {
       return {
         ...split,
-        name: action.splitId === split.id ? inputName : split.name,
+        name: action.splitId === split.id ? action.name : split.name,
       };
     });
 
     return {
       ...state,
-      splits: newSplitsWithNames,
+      splits: splitsWithUpdatedNames,
     };
   }
   /*-----------------------------------------------------*/
@@ -384,6 +340,7 @@ export const splitReducer = (state, action) => {
     );
 
     const splitValues = updatedSplits.map((split) => split.value);
+    ////-----  EQUALLY  ------////
 
     if (action.splitType === EQUALLY) {
       if (state.totalAmount != null) {
@@ -397,6 +354,7 @@ export const splitReducer = (state, action) => {
         };
       }
     }
+    ////-----  PERCENTAGES  ------////
 
     if (action.splitType === PERCENTAGES) {
       const percentagesSplitValues = updatedSplits.map(
@@ -409,43 +367,18 @@ export const splitReducer = (state, action) => {
         splitsTotalAmount: getSum(percentagesSplitValues),
       };
     }
+    ////-----  SHARES  ------////
 
     if (action.splitType === SHARES) {
-      const totalShares = updatedSplits.reduce((acc, split, i) => {
-        return (acc += +split.value);
-      }, 0);
-
-      const adjustmentInputTotal = updatedSplits.reduce((acc, split, i) => {
-        return (acc += +split.adjustmentValue);
-      }, 0);
-
-      const totalAmountAfterAdjustments =
-        state.totalAmount - adjustmentInputTotal;
-
-      const distributedCalculatedValues = currency(
-        totalAmountAfterAdjustments
-      ).distribute(totalShares);
-
-      const newSharesSplits = updatedSplits.map((split) => {
-        const calculatedValues = distributedCalculatedValues.splice(
-          0,
-          split.value
-        );
-
-        return {
-          ...split,
-          calculatedValue: (
-            +getSum(calculatedValues) + +split.adjustmentValue
-          ).toFixed(2),
-        };
-      });
+      const updatedSharesData = newSplitsForShares(
+        updatedSplits,
+        state.totalAmount
+      );
 
       return {
         ...state,
-        splits: newSharesSplits,
-        splitsTotalAmount: getSum(
-          newSharesSplits.map((split) => split.calculatedValue)
-        ),
+        splits: updatedSharesData.splits,
+        splitsTotalAmount: updatedSharesData.splitsTotalAmount,
       };
     }
 

@@ -1,7 +1,6 @@
 import React, { useReducer, useContext } from "react";
 import { EQUALLY, EXACT_AMOUNTS, PERCENTAGES, SHARES } from "../constants";
 import { splitReducer, createNewSplit } from "./split-data-reducer";
-import fractionStrToDecimal from "../utils/fractionStrToDecimal";
 
 const initialSplits = [createNewSplit()];
 

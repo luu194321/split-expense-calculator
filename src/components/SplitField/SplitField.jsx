@@ -5,7 +5,6 @@ import { faPlusMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { EQUALLY, EXACT_AMOUNTS, PERCENTAGES, SHARES } from "../../constants";
 import { useSplitDataContext } from "../../store/split-data-context";
-import fractionStrToDecimal from "../../utils/fractionStrToDecimal";
 
 import "./styles.scss";
 
@@ -28,12 +27,7 @@ export const SplitField = forwardRef((props, ref) => {
     splitState.handleNameChange(e.target.value, props.id);
   };
 
-  const handleBlur = (e) => {
-    console.log(e.target.value, fractionStrToDecimal(e.target.value));
-  };
-
   const handleAdjustmentFieldInputChange = (e) => {
-    console.log(e.target.value)
     splitState.handleAdjustmentFieldInputChange(e.target.value, props.id);
   };
 
@@ -58,7 +52,6 @@ export const SplitField = forwardRef((props, ref) => {
             onChange={handleChange}
             value={props.value}
             key={props.key}
-            onBlur={handleBlur}
           />
 
           {splitState.splitType === PERCENTAGES && (
